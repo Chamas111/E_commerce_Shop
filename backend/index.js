@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-
+const bcrypt = require("bcrypt");
 const { runInNewContext } = require("vm");
 
 app.use(express.json());
@@ -68,30 +68,41 @@ const Users = mongoose.model("Users", {
 
 //creating endpoint for registering user
 app.post("/signup", async (req, res) => {
-  let check = await Users.findOne({ email: req.body.email });
-  if (check) {
-    return res.status(400).json({
-      success: false,
-      errors: "existing user found, the email or username is already exist",
-    });
-  }
-  let cart = {};
-  for (let i = 0; i < 300; i++) {
-    cart[i] = 0;
+  try {
+    let check = await Users.findOne({ email: req.body.email });
+    if (check) {
+      return res.status(400).json({
+        success: false,
+        errors: "User already exists with this email",
+      });
+    }
+
+    // Initialize empty cart
+    let cart = {};
+    for (let i = 0; i < 300; i++) {
+      cart[i] = 0;
+    }
+
+    // Create new user
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
     const user = new Users({
       name: req.body.username,
       email: req.body.email,
-      password: req.body.password,
+      password: hashedPassword,
       cartData: cart,
     });
+
     await user.save();
-    const data = {
-      user: {
-        id: user.id,
-      },
-    };
+
+    // Generate JWT token
+    const data = { user: { id: user.id } };
     const token = jwt.sign(data, "secret_ecom");
-    res.json({ success: true, token });
+
+    return res.json({ success: true, token });
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
@@ -99,7 +110,7 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
   let user = await Users.findOne({ email: req.body.email });
   if (user) {
-    const passCompare = req.body.password === user.password;
+    const passCompare = await bcrypt.compare(req.body.password, user.password);
     if (passCompare) {
       const data = {
         user: {
@@ -218,29 +229,28 @@ app.post("/removefromcart", fetchUser, async (req, res) => {
     let userData = await Users.findOne({ _id: req.user.id });
     let itemId = req.body.itemId;
 
-    // Initialize cartData if it doesn't exist
     if (!userData.cartData) {
       userData.cartData = {};
     }
 
-    // Initialize quantity to 0 if the product doesn't exist in cartData
     if (!userData.cartData[itemId]) {
       userData.cartData[itemId] = 0;
     }
 
-    // Increment quantity by 1
-    userData.cartData[itemId] -= 1;
+    // Only decrement if > 0
+    if (userData.cartData[itemId] > 0) {
+      userData.cartData[itemId] -= 1;
+    }
 
-    // Update the user document with the modified cartData
     await Users.findByIdAndUpdate(
       { _id: req.user.id },
       { cartData: userData.cartData }
     );
 
-    res.send("Removed", req.body.itemId);
+    res.json({ success: true, message: "Removed", itemId });
   } catch (error) {
-    console.error("Error adding product to cart:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error removing product from cart:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 });
 
