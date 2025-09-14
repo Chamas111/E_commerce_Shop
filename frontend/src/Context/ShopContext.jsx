@@ -18,7 +18,16 @@ const ShopContextProvider = (props) => {
     const fetchData = async () => {
       try {
         const allProductsResponse = await axios.get("/allproducts");
-        setAll_Product(allProductsResponse.data);
+
+        // Fix image URLs
+        const productsWithFixedImages = allProductsResponse.data.map((p) => ({
+          ...p,
+          image: p.image.startsWith("http")
+            ? p.image
+            : `${process.env.REACT_APP_SERVER_BASE_URL}/images/${p.image}`,
+        }));
+
+        setAll_Product(productsWithFixedImages);
 
         if (localStorage.getItem("auth-token")) {
           const cartResponse = await axios.post(
