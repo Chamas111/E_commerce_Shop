@@ -12,7 +12,13 @@ require("dotenv").config();
 const { runInNewContext } = require("vm");
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://deploy-preview-8--online-shop23.netlify.app",
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    allowedHeaders: ["Content-Type", "auth-token"],
+  })
+);
 
 //Database Connection with MongoDb
 const connectDB = async () => {
