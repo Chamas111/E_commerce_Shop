@@ -4,7 +4,7 @@ import cross_icon from "../../assets/cross_icon.png";
 const ListProduct = () => {
   const [allproducts, setAllProducts] = useState([]);
   const fetchInfo = async () => {
-    await fetch("http://localhost:4000/allproducts")
+    await fetch("https://e-commerce-shop-jf35.onrender.com/allproducts")
       .then((res) => res.json())
       .then((data) => {
         setAllProducts(data);
@@ -17,15 +17,18 @@ const ListProduct = () => {
 
   const remove_product = async (id) => {
     try {
-      await fetch(`http://localhost:4000/removeproduct/${id}`, {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-          "content-Type": "application/json",
-          "auth-token": localStorage.getItem("auth-token"),
-        },
-        body: JSON.stringify({ id: id }),
-      });
+      await fetch(
+        `https://e-commerce-shop-jf35.onrender.com/removeproduct/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "application/json",
+            "content-Type": "application/json",
+            "auth-token": localStorage.getItem("auth-token"),
+          },
+          body: JSON.stringify({ id: id }),
+        }
+      );
       await fetchInfo();
     } catch (error) {
       console.error("Error removing product:", error);
