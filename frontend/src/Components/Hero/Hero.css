@@ -14,10 +14,11 @@
   line-height: 1.1;
 }
 
-.hero-left h2 {
+.hero-left-arrivals {
   color: #090909;
   font-size: 26px;
   font-weight: 600;
+  text-align: start;
 }
 .hero-left p {
   color: #171717;
@@ -25,9 +26,14 @@
   font-weight: 600;
 }
 
+.hero-collection {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .hero-hand-icon {
   display: flex;
-  align-items: center;
+
   gap: 20px;
 }
 
