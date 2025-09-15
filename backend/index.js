@@ -8,6 +8,7 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
+import { fileURLToPath } from "url";
 const { runInNewContext } = require("vm");
 
 app.use(express.json());
@@ -35,6 +36,9 @@ connectDB().then(() => {
 app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 //Image Storage Engine
 const storage = multer.diskStorage({
@@ -134,14 +138,23 @@ app.post("/login", async (req, res) => {
 const upload = multer({ storage: storage });
 
 //Creating Upload Endpoint for Images
-app.use("/images", express.static("upload/images"));
+app.use("/images", express.static(path.join(__dirname, "upload/images")));
 
 app.post("/upload", upload.single("product"), (req, res) => {
+  if (!req.file) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No file uploaded" });
+  }
+
+  // komplette Bild-URL erstellen
+  const imageUrl = `${req.protocol}://${req.get("host")}/images/${
+    req.file.filename
+  }`;
+
   res.json({
-    success: 1,
-    image_url: `${req.protocol}://${req.get("host")}/images/${
-      req.file.filename
-    }`,
+    success: true,
+    image_url: imageUrl,
   });
 });
 
