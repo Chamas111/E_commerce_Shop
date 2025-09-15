@@ -57,6 +57,7 @@ const Users = mongoose.model("Users", {
   password: {
     type: String,
   },
+  role: { type: String, default: "user" },
   cartData: {
     type: Object,
   },
@@ -90,6 +91,8 @@ app.post("/signup", async (req, res) => {
       name: req.body.username,
       email: req.body.email,
       password: hashedPassword,
+      role: req.body.role || "user",
+
       cartData: cart,
     });
 
@@ -115,10 +118,11 @@ app.post("/login", async (req, res) => {
       const data = {
         user: {
           id: user.id,
+          role: user.role,
         },
       };
       const token = jwt.sign(data, "secret_ecom");
-      res.json({ success: true, token });
+      res.json({ success: true, token, role: user.role });
     } else {
       res.json({ success: false, errors: "Wrong Password!!!" });
     }
@@ -290,8 +294,18 @@ const Product = mongoose.model("Product", {
   },
 });
 
+// Middleware to allow only admins
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res
+      .status(403)
+      .json({ success: false, error: "Access denied: Admins only" });
+  }
+  next();
+};
+
 //Creating API to Add products
-app.post("/addproduct", async (req, res) => {
+app.post("/addproduct", fetchUser, adminOnly, async (req, res) => {
   let products = await Product.find({});
   let id;
   if (products.length > 0) {
@@ -319,7 +333,7 @@ app.post("/addproduct", async (req, res) => {
 });
 
 // Creating API to delete product
-app.delete("/removeproduct/:id", async (req, res) => {
+app.delete("/removeproduct/:id", fetchUser, adminOnly, async (req, res) => {
   await Product.findOneAndDelete({ id: req.body.id });
 
   console.log("Removed");
