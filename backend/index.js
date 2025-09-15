@@ -1,4 +1,3 @@
-require("dotenv").config();
 const express = require("express");
 const { JsonWebTokenError } = require("jsonwebtoken");
 const app = express();
@@ -8,7 +7,8 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
-import { fileURLToPath } from "url";
+const { fileURLToPath } = require("url");
+require("dotenv").config();
 const { runInNewContext } = require("vm");
 
 app.use(express.json());
@@ -36,9 +36,6 @@ connectDB().then(() => {
 app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 //Image Storage Engine
 const storage = multer.diskStorage({
