@@ -75,6 +75,7 @@ function Navbar() {
           <button
             onClick={() => {
               localStorage.removeItem("auth-token");
+              localStorage.removeItem("role");
               window.location.replace("/");
             }}
           >

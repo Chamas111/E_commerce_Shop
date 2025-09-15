@@ -1,20 +1,23 @@
 import React, { useState } from "react";
 import "./CSS/LoginSignup.css";
 import axios from "../Components/axiosInstance";
+
 const LoginSignup = () => {
-  const [state, setState] = useState("Login");
+  const [state, setState] = useState("Login"); // "Login" or "Sign Up"
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
+    role: "user", // default role
   });
+
+  // Handle input changes
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Login function
   const login = async () => {
-    console.log("Login", formData);
-
     try {
       const response = await axios.post("/login", formData, {
         headers: {
@@ -25,7 +28,14 @@ const LoginSignup = () => {
 
       if (response.data.success) {
         localStorage.setItem("auth-token", response.data.token);
-        window.location.replace("/");
+        localStorage.setItem("role", response.data.role);
+
+        // Redirect based on role
+        if (response.data.role === "admin") {
+          window.location.replace("/admin");
+        } else {
+          window.location.replace("/");
+        }
       } else {
         alert(response.data.errors);
       }
@@ -35,9 +45,8 @@ const LoginSignup = () => {
     }
   };
 
+  // Signup function
   const signup = async () => {
-    console.log("Signup", formData);
-
     try {
       const response = await axios.post("/signup", formData, {
         headers: {
@@ -48,7 +57,14 @@ const LoginSignup = () => {
 
       if (response.data.success) {
         localStorage.setItem("auth-token", response.data.token);
-        window.location.replace("/");
+        localStorage.setItem("role", formData.role);
+
+        // Redirect based on role
+        if (formData.role === "admin") {
+          window.location.replace("/admin");
+        } else {
+          window.location.replace("/");
+        }
       } else {
         alert(response.data.errors);
       }
@@ -63,7 +79,8 @@ const LoginSignup = () => {
       <div className="loginsignup-container">
         <h1>{state}</h1>
         <div className="loginsignup-fields">
-          {state === "Sign Up" ? (
+          {/* Username only for Sign Up */}
+          {state === "Sign Up" && (
             <input
               type="text"
               name="username"
@@ -71,8 +88,6 @@ const LoginSignup = () => {
               onChange={changeHandler}
               placeholder="Your Name"
             />
-          ) : (
-            <></>
           )}
 
           <input
@@ -87,8 +102,16 @@ const LoginSignup = () => {
             name="password"
             value={formData.password}
             onChange={changeHandler}
-            placeholder="password"
+            placeholder="Password"
           />
+
+          {/* Role selector only for Sign Up */}
+          {state === "Sign Up" && (
+            <select name="role" value={formData.role} onChange={changeHandler}>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          )}
 
           <button
             onClick={() => {
@@ -98,33 +121,23 @@ const LoginSignup = () => {
             Continue
           </button>
         </div>
+
+        {/* Switch between Login and Sign Up */}
         {state === "Sign Up" ? (
           <p className="loginsignup-login">
             Already have an account?{" "}
-            <span
-              onClick={() => {
-                setState("Login");
-              }}
-            >
-              Login here
-            </span>
+            <span onClick={() => setState("Login")}>Login here</span>
           </p>
         ) : (
           <p className="loginsignup-login">
             Create an account?{" "}
-            <span
-              onClick={() => {
-                setState("Sign Up");
-              }}
-            >
-              Click here
-            </span>
+            <span onClick={() => setState("Sign Up")}>Click here</span>
           </p>
         )}
 
         <div className="loginsignup-agree">
-          <input type="checkbox" name="" id="" />
-          <p>By continuing, i agree to the terms of use privacy policy.</p>
+          <input type="checkbox" id="agree" />
+          <p>By continuing, I agree to the terms of use and privacy policy.</p>
         </div>
       </div>
     </div>
