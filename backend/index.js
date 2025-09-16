@@ -11,25 +11,8 @@ const { fileURLToPath } = require("url");
 require("dotenv").config();
 const { runInNewContext } = require("vm");
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://deploy-preview-8--online-shop23.netlify.app",
-  "https://your-production-domain.com",
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    allowedHeaders: ["Content-Type", "auth-token"],
-  })
-);
+app.use(express.json());
+app.use(cors());
 
 //Database Connection with MongoDb
 const connectDB = async () => {
